@@ -2,13 +2,15 @@ package querki.core
 
 import scala.xml.NodeSeq
 
+import scalatags.Text.all._
+
 import models.{DelegatingType, DisplayPropVal, Kind, OID, Property, PropertyBundle, PType, PTypeBuilder, PTypeBuilderBase, SimplePTypeBuilder, Thing, UnknownOID, Wikitext}
 import models.Thing.PropFetcher
 
 import querki.ecology._
 
 import querki.ql.QLPhrase
-import querki.util.{PublicException, QLog}
+import querki.util.{PublicException, QLog, XmlHelpers}
 import querki.values.{ElemValue, QLContext, QValue, RequestContext, SpaceState}
 
 import MOIDs._
@@ -275,47 +277,72 @@ trait LinkUtils { self:CoreEcot =>
     filteredAsModel.filterNot(_.ifSet(InternalProp))
   }    
   
-    def renderInputXmlGuts(prop:Property[_,_], context:QLContext, currentValue:DisplayPropVal, v:ElemValue, allowEmpty:Boolean):NodeSeq = {
-      <select class="_linkSelect"> 
-      {
-      val state = context.state
-      val Links = interface[querki.links.Links]
-      // Give the Property a chance to chime in on which candidates belong here:
-      val candidates = prop match {
-        case f:LinkCandidateProvider => f.getLinkCandidates(state, currentValue)
-        case _ => linkCandidates(state, Links, prop)
-      }
-      val realOptions =
-        if (candidates.isEmpty) {
-          Seq(<option value={UnknownOID.toString}><i>None defined</i></option>)
-        } else {
-          // Note: the unsafeDisplayNames below are because Scala's XML interpolator appears to be doing the
-          // name sanitizing for us:
-          candidates map { candidate:Thing =>
-            if(candidate.id == v.elem) {
-              <option value={candidate.id.toString} selected="selected">{candidate.unsafeDisplayName}</option>        
-            } else {
-              <option value={candidate.id.toString}>{candidate.unsafeDisplayName}</option>
-            }
-          }
-        }
-      val withOpt =
+  def renderInputXmlGuts(prop:Property[_,_], context:QLContext, currentValue:DisplayPropVal, v:ElemValue, allowEmpty:Boolean):NodeSeq = {
+    implicit val state = context.state
+    val Links = interface[querki.links.Links]
+      
+    val modelOpt = for {
+      linkModelPV <- prop.getPropOpt(Links.LinkModelProp)
+      linkModelId <- linkModelPV.firstOpt
+      model <- state.anything(linkModelId)
+    }
+      yield model
+      
+    val isChoiceClass = modelOpt.filter(_.ifSet(Links.NoCreateThroughLinkProp)).map(_ => " _isChoice")
+      
+    // Give the Property a chance to chime in on which candidates belong here:
+    val candidates = prop match {
+      case f:LinkCandidateProvider => f.getLinkCandidates(state, currentValue)
+      case _ => linkCandidates(state, Links, prop)
+    }
+        
+    val selectTag =
+      select(
+        cls:="_linkSelect" + isChoiceClass.getOrElse(""),
+        modelOpt.map(_.id.toThingId.toString).map(modelId => data.model:=modelId),
+          
         if (allowEmpty)
-          <option value={UnknownOID.id.toString}>Nothing selected</option> +: realOptions
-        else
-          realOptions
-      val linkModel = prop.getPropOpt(Links.LinkModelProp)(state)
-      linkModel match {
-        case Some(propAndVal) if (!propAndVal.isEmpty) => {
-          val model = state.anything(propAndVal.first).get
-          if (model.ifSet(Links.NoCreateThroughLinkProp)(state))
-            withOpt
-          else
-            withOpt :+ <option class="_createNewFromModel" data-model={model.toThingId} value={UnknownOID.id.toString}>Create a New {model.displayName}</option>
-        }
-        case _ => withOpt
-      }
-      } </select>
+          option(value:=UnknownOID.id.toString, "Nothing selected"),
+            
+        // Note: the unsafeDisplayNames below are because Scala's XML interpolator appears to be doing the
+        // name sanitizing for us:
+        candidates map { candidate:Thing =>
+          option(
+            value:=candidate.id.toString, 
+            if (candidate.id == v.elem)
+              selected:="selected", 
+            candidate.unsafeDisplayName)
+        }          
+      )
+        
+    XmlHelpers.toNodes(selectTag)
+      
+//      <select 
+//        class={"_linkSelect" + isChoiceClass.getOrElse("")} 
+//        data-model={modelOpt.map(_.id.toThingId.toString).getOrElse("")}>
+//      {
+//        
+//        val realOptions =
+//          if (candidates.isEmpty) {
+//            Seq(<option value={UnknownOID.toString}><i>None defined</i></option>)
+//          } else {
+//            // Note: the unsafeDisplayNames below are because Scala's XML interpolator appears to be doing the
+//            // name sanitizing for us:
+//            candidates map { candidate:Thing =>
+//              if(candidate.id == v.elem) {
+//                <option value={candidate.id.toString} selected="selected">{candidate.unsafeDisplayName}</option>        
+//              } else {
+//                <option value={candidate.id.toString}>{candidate.unsafeDisplayName}</option>
+//              }
+//            }
+//          }
+//        
+//        val withOpt =
+//          if (allowEmpty)
+//            <option value={UnknownOID.id.toString}>Nothing selected</option> +: realOptions
+//          else
+//            realOptions
+//      } </select>
     }
   
 }
