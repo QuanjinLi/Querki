@@ -20,6 +20,7 @@ class EditingEcot(e:Ecology) extends ClientEcot(e) with Editing {
     advancedEditorFactory
     Gadgets.registerSimpleGadget("._advancedEditButton", { new AdvancedEditButton })
     Gadgets.registerSimpleGadget("._pickList", { new PickListGadget })
+    Gadgets.registerSimpleGadget("._linkSelect", { new LinkEditable })
   }
   
   def propPath(propId:TID, thingIdOpt:Option[TID]):String = {

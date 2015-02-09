@@ -302,13 +302,13 @@ trait LinkUtils { self:CoreEcot =>
         modelOpt.map(_.id.toThingId.toString).map(modelId => data.model:=modelId),
           
         if (allowEmpty)
-          option(value:=UnknownOID.id.toString, "Nothing selected"),
+          option(value:=UnknownOID.id.toThingId.toString, "Nothing selected"),
             
         // Note: the unsafeDisplayNames below are because Scala's XML interpolator appears to be doing the
         // name sanitizing for us:
         candidates map { candidate:Thing =>
           option(
-            value:=candidate.id.toString, 
+            value:=candidate.id.toThingId.toString, 
             if (candidate.id == v.elem)
               selected:="selected", 
             candidate.unsafeDisplayName)
@@ -316,35 +316,7 @@ trait LinkUtils { self:CoreEcot =>
       )
         
     XmlHelpers.toNodes(selectTag)
-      
-//      <select 
-//        class={"_linkSelect" + isChoiceClass.getOrElse("")} 
-//        data-model={modelOpt.map(_.id.toThingId.toString).getOrElse("")}>
-//      {
-//        
-//        val realOptions =
-//          if (candidates.isEmpty) {
-//            Seq(<option value={UnknownOID.toString}><i>None defined</i></option>)
-//          } else {
-//            // Note: the unsafeDisplayNames below are because Scala's XML interpolator appears to be doing the
-//            // name sanitizing for us:
-//            candidates map { candidate:Thing =>
-//              if(candidate.id == v.elem) {
-//                <option value={candidate.id.toString} selected="selected">{candidate.unsafeDisplayName}</option>        
-//              } else {
-//                <option value={candidate.id.toString}>{candidate.unsafeDisplayName}</option>
-//              }
-//            }
-//          }
-//        
-//        val withOpt =
-//          if (allowEmpty)
-//            <option value={UnknownOID.id.toString}>Nothing selected</option> +: realOptions
-//          else
-//            realOptions
-//      } </select>
-    }
-  
+  }  
 }
 
 trait CoreExtra {
