@@ -24,7 +24,7 @@ lazy val querkiServer = (project in file("scalajvm")).settings(
     "com.sun.mail" % "smtp" % "1.5.0",
     "com.sun.mail" % "mailapi" % "1.5.0",
     "com.github.nscala-time" %% "nscala-time" % "1.6.0",
-    "com.typesafe.akka" %% "akka-testkit" % "2.3.4",
+    "com.typesafe.akka" %% "akka-testkit" % "2.3.9",
     "org.imgscalr" % "imgscalr-lib" % "4.2",
     "com.amazonaws" % "aws-java-sdk" % "1.8.4",
     "com.vmunier" %% "play-scalajs-scripts" % "0.1.0",
