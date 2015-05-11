@@ -1,6 +1,8 @@
 package querki.test
 
-import org.scalatest.{WordSpec, BeforeAndAfterAll, Matchers}
+import akka.actor.{ActorRef, Props}
+
+import org.scalatest.{WordSpecLike, BeforeAndAfterAll, Matchers}
 
 import models.{OID, Thing}
 
@@ -12,8 +14,8 @@ import querki.identity.User
 
 import querki.values.{QLContext, RequestContext, SpaceState}
 
-class QuerkiTests 
-  extends WordSpec
+trait QuerkiTests 
+  extends WordSpecLike
   with Matchers
   with BeforeAndAfterAll
   with EcologyMember
@@ -41,10 +43,12 @@ class QuerkiTests
     new UserAccessStub(e)
   }
   
+  def createActor(props:Props, name:String):Option[ActorRef] = None
+  
   def createEcology() = {
     val e = new EcologyImpl
     createEcots(e)
-    val state = e.init(querki.system.InitialSystemState.create(e), { (props, name) => None })
+    val state = e.init(querki.system.InitialSystemState.create(e), createActor)
     e.api[querki.system.SystemManagement].setState(state)
     ecology = e
   }

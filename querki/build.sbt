@@ -97,7 +97,7 @@ lazy val sharedDependencies = Def.setting(Seq(
   "com.lihaoyi" %%% "scalarx" % "0.2.8",
   "com.lihaoyi" %%% "autowire" % "0.2.5",
   "com.lihaoyi" %%% "scalatags" % "0.4.6",
-  "org.scalatest" %% "scalatest" % "2.2.0" % "test"
+  "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 ))
 
 onLoad in Global := (Command.process("project querkiServer", _: State)) compose (onLoad in Global).value
