@@ -102,6 +102,7 @@ class ClientSimulation(_system:ActorSystem) extends TestKit(_system) with Querki
 	  }      
     }
   }
+  lazy val userSpace = new UserSpaceClient(ownerRc)
   
   "The Client simulation" should {
     "run a full test" in {
